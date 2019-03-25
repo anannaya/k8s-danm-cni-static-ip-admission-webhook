@@ -1,0 +1,26 @@
+########################################################
+# k8s-danm-cni-static-ip-controller Admission webhook registration
+########################################################
+# Please update the CABundle with valid CA
+
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: k8s-danm-cni-static-ip-controller
+webhooks:
+  - name: k8s-danm-cni-static-ip-controller.nokia.io
+    rules:
+      - operations:
+          - CREATE
+        apiGroups:
+          - ""
+        apiVersions:
+          - v1
+        resources:
+          - pods
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: default
+        name: k8s-danm-cni-static-ip-controller 
+      caBundle:	

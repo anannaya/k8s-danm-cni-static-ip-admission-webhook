@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: k8s-danm-cni-static-ip-controller
+  name: k8s-danm-cni-static-ip-controller
+  namespace: default
+spec:
+  ports:
+  - port: 443
+    targetPort: 443
+    name: https
+  selector:
+    app: k8s-danm-cni-static-ip-controller
