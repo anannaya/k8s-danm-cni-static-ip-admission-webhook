@@ -43,10 +43,6 @@ var ignoredNamespaces = []string{
 	metav1.NamespacePublic,
 }
 
-func mutateDanmCrd() {
-
-}
-
 func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta, kind string) (bool, error) {
 	// skip special kubernete system namespaces
 	for _, namespace := range ignoredList {
@@ -69,7 +65,7 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta, kind st
 		}
 	}
 	// clear the danm endpoint incase of static ip address and pod running node is NotReady
-	return checkFordanmStaticIPOnPodWorkloads(metadata)
+	return danmStaticIPValidation(metadata)
 
 }
 

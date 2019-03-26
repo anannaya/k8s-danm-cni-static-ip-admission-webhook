@@ -19,6 +19,7 @@ import (
 	"syscall"
 
 	"github.com/Sirupsen/logrus"
+	danmclientset "github.com/nokia/danm/pkg/crd/client/clientset/versioned"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -33,7 +34,8 @@ var (
 	clientAuth    = flag.Bool("clientAuth", false, "True to verify client cert/auth during TLS handshake.")
 	admitAll      = flag.Bool("admitAll", false, "True to admit all namespace deletions without validation.")
 
-	clientset kubernetes.Interface
+	danmclient danmclientset.Interface
+	clientset  kubernetes.Interface
 
 	log *logrus.Logger
 )
@@ -57,8 +59,14 @@ func main() {
 		log.Fatalf("Error occurred while building the in-cluster kube-config: %s", err.Error())
 	}
 
-	// creates the clientset
+	// creates the kuberntes clientset
 	clientset, err = kubernetes.NewForConfig(config)
+	if err != nil {
+		log.Fatalf("Error occurred while initializing the client set: %s", err.Error())
+	}
+
+	// creates the danmclient
+	danmclient, err = danmclientset.NewForConfig(config)
 	if err != nil {
 		log.Fatalf("Error occurred while initializing the client set: %s", err.Error())
 	}
