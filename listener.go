@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	danmtypes "github.com/nokia/danm/pkg/crd/apis/danm/v1"
 	"k8s.io/api/admission/v1beta1"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	v1 "k8s.io/api/apps/v1"
@@ -43,25 +44,25 @@ var ignoredNamespaces = []string{
 	metav1.NamespacePublic,
 }
 
-func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta, kind string) (bool, error) {
+func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta, kind string) (danmtypes.DanmEp, bool, error) {
 	// skip special kubernete system namespaces
 	for _, namespace := range ignoredList {
 		if metadata.Namespace == namespace {
 			log.Infof("Skip mutation for %v for it' in special namespace:%v", metadata.Name, metadata.Namespace)
-			return false, nil
+			return danmtypes.DanmEp{}, false, nil
 		}
 	}
 
 	//check if the kind obect is other than replicaset/deployment
 	if kind != "ReplicaSet" || kind != "Deployment" {
-		return false, nil
+		return danmtypes.DanmEp{}, false, nil
 	}
 
 	annotations := metadata.GetAnnotations()
 	if annotations == nil {
 		// determine whether to perform mutation based on annotation for the target resource
 		if _, ok := annotations[danmIfDefinitionSyntax]; !ok {
-			return false, nil
+			return danmtypes.DanmEp{}, false, nil
 		}
 	}
 	// clear the danm endpoint incase of static ip address and pod running node is NotReady
@@ -72,7 +73,12 @@ func mutationRequired(ignoredList []string, metadata *metav1.ObjectMeta, kind st
 //main mutation process to mutate the danm crd incase of danm annotation
 func mutate(admReview *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	req := admReview.Request
-	var pod corev1.Pod
+	var (
+		pod         corev1.Pod
+		ep          danmtypes.DanmEp
+		status      bool
+		mutationerr error
+	)
 	if err := json.Unmarshal(req.Object.Raw, &pod); err != nil {
 		log.Errorf("Could not unmarshal the raw obejct:%v", err)
 		return &v1beta1.AdmissionResponse{
@@ -86,11 +92,11 @@ func mutate(admReview *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		req.Kind.Kind, req.Namespace, req.Name, pod.Name, req.UID, req.Operation, req.UserInfo)
 
 	// determine wheather to perform mutation
-	if status, err := mutationRequired(ignoredNamespaces, &pod.ObjectMeta, req.Kind.Kind); err != nil {
-		log.Errorf("Failed to check the mutation required condition:%v", err)
+	if ep, status, mutationerr = mutationRequired(ignoredNamespaces, &pod.ObjectMeta, req.Kind.Kind); mutationerr != nil {
+		log.Errorf("Failed to check the mutation required condition:%v", mutationerr)
 		return &v1beta1.AdmissionResponse{
 			Result: &metav1.Status{
-				Message: err.Error(),
+				Message: mutationerr.Error(),
 			},
 		}
 	} else if !status {
@@ -100,7 +106,26 @@ func mutate(admReview *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		}
 	}
 
-	// clear the danm endpoint incase of static ip address and pod running node is NotReady
+	// clear the danm endpoint incase of static ip address of the previous running node is NotReady
+	if err := deleteDanmEndPoint(ep, pod.ObjectMeta.Namespace); err != nil {
+		log.Errorf("Failed to delete the danm endpoint :%v", err)
+		return &v1beta1.AdmissionResponse{
+			Result: &metav1.Status{
+				Message: err.Error(),
+			},
+		}
+	}
+	// clear the static ip address from danm ipam
+	netInfo, err := danmclient.DanmV1().DanmNets(pod.ObjectMeta.Namespace).Get(ep.Spec.NetworkID, metav1.GetOptions{})
+	if err != nil {
+		log.Errorf("Failed to get the the danm network :%v", err)
+		return &v1beta1.AdmissionResponse{
+			Result: &metav1.Status{
+				Message: err.Error(),
+			},
+		}
+	}
+	deleteDanmStaticIP(netInfo, ep.Spec)
 	return &v1beta1.AdmissionResponse{}
 }
 

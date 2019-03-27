@@ -1,4 +1,3 @@
-#NOTE: Solution is incomplete devlopment is on going
 # k8s-danm-cni-static-ip-controller
 
 k8s-danm-cni-static-ip-controller provides an admission control policy that takes care of
