@@ -1,0 +1,28 @@
+package: .
+import:
+- package: github.com/Sirupsen/logrus
+  version: v1.4.0
+- package: github.com/nokia/danm
+  version: v3.2.0
+  subpackages:
+  - pkg/crd/apis/danm/v1
+  - pkg/crd/client/clientset/versioned
+  - pkg/ipam
+- package: gopkg.in/natefinch/lumberjack.v2
+  version: v2.1
+- package: k8s.io/api
+  subpackages:
+  - admission/v1beta1
+  - admissionregistration/v1beta1
+  - apps/v1
+  - core/v1
+- package: k8s.io/apimachinery
+  subpackages:
+  - pkg/apis/meta/v1
+  - pkg/runtime
+  - pkg/runtime/serializer
+- package: k8s.io/client-go
+  version: v10.0.0
+  subpackages:
+  - kubernetes
+  - rest

@@ -15,7 +15,11 @@ The following resources are currently checked for existence:
 - deployments
 
 The k8s-danm-cni-static-ip-controller policy implementation enforces before the above listed resources creation having the static ip.
-
+## Basic Dev Setup
+1. Git clone to your local directory.
+2. Build binary:
+    $ ./resolve-danm-dep.sh
+    $ GOOS=linux go build -a --ldflags '-extldflags "-static"' -tags netgo -installsuffix netgo -o      k8s-danm-cni-static-ip-admission-webhook .
 ## Command Line Args
 
 ```
