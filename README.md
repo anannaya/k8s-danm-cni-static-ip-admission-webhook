@@ -3,6 +3,7 @@
 k8s-danm-cni-static-ip-controller provides an admission control policy that takes care of
 static ip management in case unavailability of worker node.
 
+![flow chart](/flow.jpg)
 ## Implementation
 
 This is implemented as an [External Admission Webhook](https://kubernetes.io/docs/admin/extensible-admission-controllers/#external-admission-webhooks) with the k8s-danm-cni-static-ip-controller service running as a deployment on each cluster.  
