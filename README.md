@@ -1,6 +1,6 @@
 # k8s-danm-cni-static-ip-controller
 
-k8s-danm-cni-static-ip-controller provides an admission control policy that takes care of
+k8s-danm-cni-static-ip-controller provides an admission control policy that takes care of [danm cni](https://github.com/nokia/danm)
 static ip management in case unavailability of worker node.
 
 ![flow chart](/flow.jpg)
