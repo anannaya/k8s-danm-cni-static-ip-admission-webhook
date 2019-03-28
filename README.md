@@ -18,8 +18,11 @@ The k8s-danm-cni-static-ip-controller policy implementation enforces before the 
 ## Basic Dev Setup
 1. Git clone to your local directory.
 2. Build binary:
-    $ ./resolve-danm-dep.sh
-    $ GOOS=linux go build -a --ldflags '-extldflags "-static"' -tags netgo -installsuffix netgo -o      k8s-danm-cni-static-ip-admission-webhook .
+    - $ `./resolve-danm-dep.sh`
+    - $ `GOOS=linux go build -a --ldflags '-extldflags "-static"' -tags netgo -installsuffix netgo -o      k8s-danm-cni-static-ip-admission-webhook .`
+3. Run binary: `./k8s-danm-cni-static-ip-admission-webhook`.
+4. Follow standard Go code format: `gofmt -w *.go`
+
 ## Command Line Args
 
 ```
