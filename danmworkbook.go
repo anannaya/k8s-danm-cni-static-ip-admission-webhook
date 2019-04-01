@@ -23,6 +23,7 @@ var (
 	v1Endpoint             = "/api/v1/"
 	kubeConf               string
 	defaultNetworkName     = "default"
+	NodeStatus             = "Ready"
 )
 
 type podMetadata struct {
@@ -33,6 +34,7 @@ var danmStaticIPNetworks []string
 
 func parsePodMetada(meta *metav1.ObjectMeta, podmeta *podMetadata) error {
 	var ifaces []danmtypes.Interface
+	log.Infof("meta.Annotations =%v", meta.Annotations)
 	for key, val := range meta.Annotations {
 		if strings.Contains(key, danmIfDefinitionSyntax) {
 			err := json.Unmarshal([]byte(val), &ifaces)
@@ -45,6 +47,7 @@ func parsePodMetada(meta *metav1.ObjectMeta, podmeta *podMetadata) error {
 	if len(ifaces) == 0 {
 		ifaces = []danmtypes.Interface{{Network: defaultNetworkName}}
 	}
+	log.Infof("ifaces =%v", ifaces)
 	podmeta.interfaces = ifaces
 	return nil
 }
@@ -68,6 +71,8 @@ func getDanmEp(staticip string, ipversion string) (danmtypes.DanmEp, error) {
 	}
 	eplist := result.Items
 	for _, ep := range eplist {
+		log.Infof("IPAddress %s", ep.Spec.Iface.Address)
+		log.Infof("MY Static IPAddress %s", staticip)
 		if ipversion == "IPv4" && ep.Spec.Iface.Address == staticip {
 			return ep, nil
 		}
@@ -82,6 +87,7 @@ func checkForExistingStaticIPInDanmEpList(podmeta *podMetadata) (danmtypes.DanmE
 	for _, danmNw := range podmeta.interfaces {
 		var err error
 		if danmNw.Ip != "" {
+			log.Infof("Static ip :%s", danmNw.Ip)
 			danmep, err = getDanmEp(danmNw.Ip, "IPv4")
 		}
 		if danmNw.Ip6 != "" {
@@ -96,9 +102,11 @@ func checkForExistingStaticIPInDanmEpList(podmeta *podMetadata) (danmtypes.DanmE
 
 //IskubeNodeReady check wheather the Kubernetes cluster node is ready to serve
 func IskubeNodeReady(hostname string) (bool, error) {
-
+	log.Infof("Get the nodeinfo")
 	nodeinfo, err := clientset.CoreV1().Nodes().Get(hostname, metav1.GetOptions{})
 	if err != nil {
+		log.Infof("ERROR !!! Getting the node details %v", err)
+		log.Errorf("Getting the node details %v", err)
 		return false, err
 	}
 	conditionMap := make(map[v1.NodeConditionType]*v1.NodeCondition)
@@ -123,11 +131,14 @@ func IskubeNodeReady(hostname string) (bool, error) {
 	if nodeinfo.Spec.Unschedulable {
 		status = append(status, "SchedulingDisabled")
 	}
+	log.Infof("Node status %v", status)
 	for _, value := range status {
 		if value == "Ready" {
+			log.Infof("The Node is still ready %s", hostname)
 			return true, nil
 		}
 	}
+	NodeStatus = "NotReady"
 	return false, nil
 }
 
@@ -140,15 +151,18 @@ func danmStaticIPValidation(metadata *metav1.ObjectMeta) (danmtypes.DanmEp, bool
 	}
 	danmStaticIPaddress(podmeta)
 	if len(podmeta.interfaces) > 0 {
+		log.Infof("Check for  checkForExistingStaticIPInDanmEpList")
 		danmep, err = checkForExistingStaticIPInDanmEpList(podmeta)
 		if err != nil {
 			return danmep, true, err
 			//check for empty struct
 		} else if danmep.Spec.EndpointID == "" {
+			log.Infof("IP not in danm endpoint")
 			return danmep, false, nil
 		}
 	}
 	// check for Host having danmep is Ready or NotReady
+	log.Infof("Check for  IskubeNodeReady %s", danmep.Spec.Host)
 	status, err := IskubeNodeReady(danmep.Spec.Host)
 	if err != nil {
 		return danmep, true, err
@@ -159,6 +173,7 @@ func danmStaticIPValidation(metadata *metav1.ObjectMeta) (danmtypes.DanmEp, bool
 }
 
 func deleteDanmEndPoint(ep danmtypes.DanmEp, namespace string) error {
+	log.Infof("Deleting the danmep %s", ep.Spec.EndpointID)
 	delOpts := metav1.DeleteOptions{}
 	err := danmclient.DanmV1().DanmEps(namespace).Delete(ep.ObjectMeta.Name, &delOpts)
 	if err != nil {
@@ -168,5 +183,6 @@ func deleteDanmEndPoint(ep danmtypes.DanmEp, namespace string) error {
 }
 
 func deleteDanmStaticIP(netInfo *danmtypes.DanmNet, epspec danmtypes.DanmEpSpec) {
+	log.Infof("Deleting the DanmStaticIP %s%s", epspec.Iface.Address, epspec.Iface.AddressIPv6)
 	ipam.GarbageCollectIps(danmclient, netInfo, epspec.Iface.Address, epspec.Iface.AddressIPv6)
 }

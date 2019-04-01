@@ -37,3 +37,7 @@ USAGE:
   --logLevel     string  The log level. (default "info")
   --port         string  Server port. (default "443")
 ```
+
+# Deploying the webhook in k8s cluster
+For Generation the certificates and deploying the workbook in a cluster 
+Refer [certificate generation](https://banzaicloud.com/blog/k8s-admission-webhooks/)

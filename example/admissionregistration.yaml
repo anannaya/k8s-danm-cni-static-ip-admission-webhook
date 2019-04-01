@@ -8,19 +8,16 @@ kind: MutatingWebhookConfiguration
 metadata:
   name: k8s-danm-cni-static-ip-controller
 webhooks:
-  - name: k8s-danm-cni-static-ip-controller.nokia.io
-    rules:
-      - operations:
-          - CREATE
-        apiGroups:
-          - ""
-        apiVersions:
-          - v1
-        resources:
-          - pods
-    failurePolicy: Fail
-    clientConfig:
-      service:
-        namespace: default
-        name: k8s-danm-cni-static-ip-controller 
-      caBundle:	
+- name: k8s-danm-cni-static-ip-controller.nokia.io
+  rules:
+    - operations: [ "CREATE" ]
+      apiGroups: [""]
+      apiVersions: [ "v1" ]
+      resources: ["pods"]
+  # failurePolicy: Fail
+  clientConfig:
+    service:
+      namespace: default
+      name: k8s-danm-cni-static-ip-controller 
+      path: "/mutate"
+    caBundle:	"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURjakNDQWxxZ0F3SUJBZ0lJZGx0bDNQSm8yZ3N3RFFZSktvWklodmNOQVFFTEJRQXdVREVMTUFrR0ExVUUKQmhNQ1FVRXhDekFKQmdOVkJBZ01Ba0ZCTVFzd0NRWURWUVFIREFKQlFURUxNQWtHQTFVRUNnd0NRVUV4Q3pBSgpCZ05WQkFzTUFrRkJNUTB3Q3dZRFZRUUREQVJDUTAxVU1CNFhEVEU1TURNeE9UQTJOVFl3TUZvWERUSTVNRE14Ck5qQTJOVFl3TUZvd1VERUxNQWtHQTFVRUJoTUNRVUV4Q3pBSkJnTlZCQWdNQWtGQk1Rc3dDUVlEVlFRSERBSkIKUVRFTE1Ba0dBMVVFQ2d3Q1FVRXhDekFKQmdOVkJBc01Ba0ZCTVEwd0N3WURWUVFEREFSQ1EwMVVNSUlCSWpBTgpCZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF1TjQyY09lVTVVQlZYK0JMZUZNZElBaTVBTTR6CjBDak5mWkZaZXY1dTFGVnRTeXdid01jUjRqZThNa0luS2pSNjNBMXA1aGQvb2dvN1hUU1M5elE0Y0p6TGUvemEKSzhYSXZobitEVmJ6MHMrZEtEYmYwMXhENUo5WCt3S2JKbDYxcDdTM0oyN0p2enIxS2RBbWZEMEVJWmR2bjMzQQpCTU5sYmYzeG14MURMd3h1NnIvVDhpMjlyRUVzeWtrN0ZBVVhPei80VVZrL2xzWDdVWXg2MUZhVWFSeDlUSEdwCjJvSi9pVHVPQ0dYMXhrZkFBUkFOWFFqenlVQmhCRHZaN0U5bitPUkZraGdEVEdwbzBPcE5KK2pFNVkvb2xRYkgKVXBuc2tUOUZVeklVTjk4SldIMEVJc1J4cDRhdVpzV3dIZXRkR0FYdUZKZGFNbm83QTdHSmNzdXhOd0lEQVFBQgpvMUF3VGpBTUJnTlZIUk1FQlRBREFRSC9NQjBHQTFVZERnUVdCQlJibHQzdDUwcHY5S0dRK21vWElBb1ZWUm5LClBUQWZCZ05WSFNNRUdEQVdnQlJibHQzdDUwcHY5S0dRK21vWElBb1ZWUm5LUFRBTkJna3Foa2lHOXcwQkFRc0YKQUFPQ0FRRUFSdi9xWWNnNEJyeWR4QlQwK2FHZDRMUW1ET3EzcmpGZURJNDFxRHNPc3FQdHh0TlFJQ2pMeVUybwpZSGtoWmEvSUNnYVhWNWZOVTJwK090K2hKVW41am1CNUlnVi9td05PRm16OTFPZ3JlWkFjT3J4VHMxYytlampjClRzZE80OWJSSzF6RXNvdEFjenhheHFaYms2d1k3RXVjNG0vc3VHMzFrZy9GbUdyeWZRYUtEaG9QNS8zeFUyUUsKQUNEQXYzUXRkTVAwdXdZWmZybG5SOTB2KzRvZmxjM2VwYlVUZU9BMjNYNmI3eDMxNUozejhDRERpUmdRQU9MLwpGNGIvNVg1RHdQMGgrbjhjV0lPYXozd25aTWNKU2JHK3RGb1FaYllUVm00SDNRMTJ2aFp5ekEvRmhZZ0dQc3NUCnYveCtBSmFuN2pFcXpGV0pCa2FsOCtvVCtXV2IrUT09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"

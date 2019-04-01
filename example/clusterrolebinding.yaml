@@ -2,11 +2,11 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
-  name: view
+  name: k8s-danm-cni-static-ip-controller
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: view
+  name: k8s-danm-cni-static-ip-controller
 subjects:
 - kind: ServiceAccount
   name: k8s-danm-cni-static-ip-controller

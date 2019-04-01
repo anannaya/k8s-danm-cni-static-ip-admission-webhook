@@ -27,8 +27,16 @@ spec:
     spec:
       serviceAccountName: k8s-danm-cni-static-ip-controller
       terminationGracePeriodSeconds: 0
+      tolerations:
+      - key: 'is_control'
+        operator: 'Equal'
+        value: 'true'
+        effect: 'NoExecute'
+      nodeSelector:
+        "is_control": "true"
       containers:
       - name: k8s-danm-cni-static-ip-controller
+        imagePullPolicy: Always
         resources:
           requests:
             memory: 128Mi
@@ -36,17 +44,17 @@ spec:
           limits:
             memory: 512Mi
             cpu: 500m
-        image: "k8s-danm-cni-static-ip-controller"
+        image: dockerregistry.ims.nokia.com:6000/nokia/imsdev/k8s-danm-cni-static-ip-controller-master:290319
         args:
         - --admitAll=false
-        - --keyFile=/etc/ssl/certs/k8s-danm-cni-static-ip-controller/server-key.pem
-        - --certFile=/etc/ssl/certs/k8s-danm-cni-static-ip-controller/server.crt
+        - --keyFile=/etc/webhook/certs/key.pem
+        - --certFile=/etc/webhook/certs/cert.pem
         - --clientAuth=false
         - --logFile=/var/log/k8s-danm-cni-static-ip-controller.log
         - --logLevel=info
         - --port=443
         command:
-        - /usr/bin/k8s-danm-cni-static-ip-controller
+        - /k8s-danm-cni-static-ip-controller-master
         ports:
           - containerPort: 443
         env:
@@ -54,13 +62,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        livenessProbe:
-          httpGet:
-            path: /status.html
-            port: 443
-            scheme: HTTPS
-          initialDelaySeconds: 30
-          timeoutSeconds: 2
         readinessProbe:
           httpGet:
             path: /status.html
@@ -69,16 +70,10 @@ spec:
           initialDelaySeconds: 10
           timeoutSeconds: 2
         volumeMounts:
-        - name: tls
-          mountPath: "/etc/ssl/certs/k8s-danm-cni-static-ip-controller"
+        - name: webhook-certs
+          mountPath: /etc/webhook/certs
           readOnly: true
       volumes:
-      - name: tls
+      - name: webhook-certs
         secret:
-          defaultMode: 420
-          items:
-          - key: tls.key
-            path: server-key.pem
-          - key: tls.crt
-            path: server.crt
-          secretName: k8s-danm-cni-static-ip-controller-tls-certs
+          secretName: admission-webhook-example-certs
